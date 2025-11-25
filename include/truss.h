@@ -4,6 +4,7 @@
 #ifndef H_TRUSS_H
 #define H_TRUSS_H
 #include "linked-list.h"
+#include <stdbool.h>
 
 
 //Declaring a struct to hold a node info
