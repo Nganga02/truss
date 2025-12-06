@@ -54,10 +54,12 @@ void ll_free(Conscell *listTofree)
     while (listTofree != NULL)
     {
         Conscell *p = listTofree->next;
+        free(listTofree->data);
         free(listTofree);
         listTofree = p;
     }
-    listTofree = NULL; // Prevent dangling pointers.
+    /*This is to prevent dangling pointers*/
+    listTofree = NULL; 
 }
 
 Conscell *ll_reverse(Conscell *listToReverse)
