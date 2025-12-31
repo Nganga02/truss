@@ -36,19 +36,20 @@ static struct node *make_node(int n, double x, double y, int xfixed, int yfixed)
     new_node->Y = new_node->y = y;
     new_node->fx = new_node->fy = 0.0;
     new_node->rx = new_node->ry = 0.0;
+    return new_node;
 }
 
 static struct node *process_node_line(char *str)
 {
     double x, y;
     int n;
-    if ((sscanf(str, "node   %d  %f  %f", &n, &x, &y)) == 3)
+    if ((sscanf(str, "node %d:  %lf  %lf", &n, &x, &y)) == 3)
         return make_node(n, x, y, 0, 0);
-    else if ((sscanf(str, "node   %d  *%f  %f", &n, &x, &y)) == 3)
+    else if ((sscanf(str, "node %d:  *%lf  %lf", &n, &x, &y)) == 3)
         return make_node(n, x, y, 1, 0);
-    else if ((sscanf(str, "node   %d  %f  *%f", &n, &x, &y)) == 3)
+    else if ((sscanf(str, "node %d:  %lf  *%lf", &n, &x, &y)) == 3)
         return make_node(n, x, y, 0, 1);
-    else if ((sscanf(str, "node   %d  *%f  *%f", &n, &x, &y)) == 3)
+    else if ((sscanf(str, "node %d:  *%lf  *%lf", &n, &x, &y)) == 3)
         return make_node(n, x, y, 1, 1);
     else
         return NULL;
@@ -70,9 +71,9 @@ static Conscell *get_nodes(FILE *stream, int *lineno)
         fprintf(stderr, "***errror: no 'begin nodes' in input");
         return NULL;
     }
-    while ((str = fetch_line(buf, BUFLEN, stream, lineno)) == NULL)
+    while ((str = fetch_line(buf, BUFLEN, stream, lineno)) != NULL)
     {
-        if (strcmp(str, "e  END NODES") == 0)
+        if (strcmp(str, "END NODES") == 0)
             return nodes_list;
 
         if ((node = process_node_line(str)) == NULL)
@@ -137,7 +138,7 @@ static struct link *process_link_line(char *str, Conscell *nodes_list)
     int n, n1, n2;
 
     // reading the string format of the string
-    if (sscanf("link %d: %d  %d  %lf  %lf", &n, &n1, &n2, &A, &E) == 5)
+    if (sscanf(str, "link %d: %d  %d  %lf  %lf", &n, &n1, &n2, &A, &E) == 5)
         return make_link(n, n1, n2, A, E, nodes_list);
     else
         return NULL;
@@ -159,7 +160,7 @@ static Conscell *get_links(FILE *stream, int *lineno, Conscell *nodes_list)
         fprintf(stderr, "***errror: no 'BEGIN LINKS' in input");
         return NULL;
     }
-    while ((str = fetch_line(buf, BUFLEN, stream, lineno)) == NULL)
+    while ((str = fetch_line(buf, BUFLEN, stream, lineno)) != NULL)
     {
         if (strcmp(str, "END LINKS") == 0)
             return links_list;
@@ -183,7 +184,7 @@ static int process_load_line(char *str, Conscell *nodes_list)
 {
     int n;
     double fx, fy;
-    if (sscanf(str, "load   %d: %lf %lf", &n, &fx, &fy) == 3)
+    if (sscanf(str, "load %d:  %lf  %lf", &n, &fx, &fy) == 3)
     {
         for (Conscell *p = nodes_list; p != NULL; p = p->next)
         {
@@ -196,7 +197,7 @@ static int process_load_line(char *str, Conscell *nodes_list)
             }
         }
     }
-    return 0;
+    else return 0;
 }
 
 static int get_loads(FILE *stream, int *lineno, Conscell *nodes_list)
@@ -210,17 +211,17 @@ static int get_loads(FILE *stream, int *lineno, Conscell *nodes_list)
     }
     if (strcmp(str, "BEGIN LOADS") != 0)
     {
-        fprintf(stderr, "***errror: no 'BEGIN LOADS' in input");
+        fprintf(stderr, "***errror: no 'BEGIN LOADS' in input\n");
         return 0;
     }
-    while ((str = fetch_line(buf, BUFLEN, stream, lineno)) == NULL)
+    while ((str = fetch_line(buf, BUFLEN, stream, lineno)) != NULL)
     {
         if (strcmp(str, "END LOADS") == 0)
             return 1;
 
-        if (process_load_line(str, nodes_list))
+        if (!process_load_line(str, nodes_list))
         {
-            fprintf(stderr, "***errror: loads input is malformed");
+            fprintf(stderr, ANSI_COLOR_RED"***errror: loads input is malformed\n"ANSI_COLOR_RED);
             return 0;
         }
     }
@@ -259,6 +260,7 @@ struct truss *read_truss(FILE *stream)
     fprintf(stderr,
             ANSI_COLOR_GREEN "read %d nodes, %d links\n" ANSI_COLOR_GREEN,
             truss->nnodes, truss->nlinks);
+    return truss;
 }
 
 /*
@@ -335,5 +337,13 @@ void write_truss(struct truss *truss)
 
 void free_truss(struct truss *truss)
 {
+    //To avoid segmentation fault
+    if(truss != NULL)
+    {
+        ll_free(truss->nodes_list);
+        ll_free(truss->links_list);
+        free(truss);
+    }
+    truss = NULL;
 }
 /*\(^_^)/*/

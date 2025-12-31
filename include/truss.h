@@ -7,7 +7,9 @@
 #include <stdbool.h>
 
 
-//Declaring a struct to hold a node info
+/**
+ * Represent the data for the joints in the truss
+ */
 struct node{
     int n; //node number
     double X, Y; //reference configuration
@@ -18,7 +20,9 @@ struct node{
 };
 
 
-//Declaring a struct signature that will hold the links innformation
+/**
+ * Represent the data for the links/members of the truss
+ */
 struct link{
     int n; // link number
     struct node *np1; //pointer to the first node
