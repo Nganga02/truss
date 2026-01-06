@@ -50,3 +50,5 @@ The following are the header files required to accomplish the truss project
 
 ### Files maneuvering
 The files `truss-io.[ch]` handle the reading and writing of truss description files which has the extension `.tdf`
+
+The files `truss.[ch]` contain the implementation of the equations and the solver utility needed to solve trusses 
