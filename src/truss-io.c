@@ -34,6 +34,8 @@ static struct node *make_node(int n, double x, double y, int xfixed, int yfixed)
     new_node->n = n;
     new_node->X = new_node->x = x;
     new_node->Y = new_node->y = y;
+    new_node->xfixed = xfixed;
+    new_node->yfixed = yfixed;
     new_node->fx = new_node->fy = 0.0;
     new_node->rx = new_node->ry = 0.0;
     return new_node;
@@ -58,7 +60,7 @@ static struct node *process_node_line(char *str)
 static Conscell *get_nodes(FILE *stream, int *lineno)
 {
     Conscell *nodes_list = NULL;
-    struct node *node;
+    struct node *node = NULL;
     char buf[BUFLEN];
     char *str;
     if ((str = fetch_line(buf, BUFLEN, stream, lineno)) == NULL)
@@ -147,7 +149,7 @@ static struct link *process_link_line(char *str, Conscell *nodes_list)
 static Conscell *get_links(FILE *stream, int *lineno, Conscell *nodes_list)
 {
     Conscell *links_list = NULL;
-    struct link *link;
+    struct link *link = NULL;
     char buf[BUFLEN];
     char *str;
     if ((str = fetch_line(buf, BUFLEN, stream, lineno)) == NULL)

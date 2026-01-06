@@ -1,4 +1,6 @@
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "truss-render.h"
 #include "truss-io.h"
@@ -48,12 +50,18 @@ static int SDL_initialize(Truss_Renderer *truss_renderer)
  */
 static void animation_cleanup(Truss_Renderer *truss_render_ptr, int exit_status)
 {
+
     SDL_DestroyTexture(truss_render_ptr->texture);
     SDL_DestroyRenderer(truss_render_ptr->renderer);
     SDL_DestroyWindow(truss_render_ptr->window);
     SDL_Quit();
-    if(truss_render_ptr != NULL) free_truss(truss_render_ptr->truss);
-    exit(exit_status);
+    fprintf(stderr, "[EXIT STATUS]____________%i_____________\n", exit_status);
+    if (exit_status == EXIT_FAILURE)
+    {
+        if (truss_render_ptr != NULL)
+            free_truss(truss_render_ptr->truss);
+        exit(exit_status);
+    }
 }
 
 /**
@@ -136,7 +144,7 @@ static int render_link(SDL_Renderer *renderer, struct link *link)
  * the pointer to the truss object created when we call the read_truss function.
  */
 
-int render_truss(struct truss *truss)
+void render_truss(struct truss *truss)
 {
     Truss_Renderer truss_render = {
         .truss = truss,
@@ -152,14 +160,10 @@ int render_truss(struct truss *truss)
         animation_cleanup(truss_render_ptr, EXIT_FAILURE);
     }
 
-    // Creating the Canvas
-    SDL_SetRenderDrawColor(truss_render_ptr->renderer, 0, 0, 0,
-                           SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(truss_render_ptr->renderer);
-
     // Positioning a stress key
     SDL_Rect rects[15];
-    while (true)
+    int live = 1;
+    while (live)
     {
 
         SDL_Event event;
@@ -168,23 +172,23 @@ int render_truss(struct truss *truss)
             switch (event.type)
             {
             case SDL_QUIT:
-                animation_cleanup(truss_render_ptr, EXIT_SUCCESS);
+                live = 0;
                 break;
             case SDL_KEYDOWN:
-                switch (event.key.keysym.scancode)
-                {
-                case SDL_SCANCODE_ESCAPE:
-                    animation_cleanup(truss_render_ptr, EXIT_SUCCESS);
-                    break;
-                default:
-                    break;
-                }
+                if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
+                    live = 0;
+                break;
             default:
                 break;
             }
         }
 
-        //Rendering key
+         // Creating the Canvas
+        SDL_SetRenderDrawColor(truss_render_ptr->renderer, 0, 0, 0,
+                            SDL_ALPHA_OPAQUE);
+        SDL_RenderClear(truss_render_ptr->renderer);
+
+        // Rendering key
         for (int i = 0; i < 15; i++)
         {
             rects[i].w = rects[i].h = 30.0;
@@ -199,35 +203,35 @@ int render_truss(struct truss *truss)
             SDL_RenderFillRect(truss_render_ptr->renderer, &rects[i]);
         }
 
-        //Rendering links
+        // Rendering links
         for (
             Conscell *p = truss_render_ptr->truss->links_list;
             p != NULL;
             p = p->next)
         {
             struct link *lk_ptr = (struct link *)p->data;
-            if(render_link(truss_render_ptr->renderer, lk_ptr)) animation_cleanup(truss_render_ptr, EXIT_FAILURE);
+            render_link(truss_render_ptr->renderer, lk_ptr);
         }
 
-
-        //Rendering nodes(fixed and movable)
+        // Rendering nodes(fixed and movable)
         for (
             Conscell *p = truss_render_ptr->truss->nodes_list;
             p != NULL;
             p = p->next)
         {
             struct node *node_ptr = (struct node *)p->data;
-            if(node_ptr->xfixed && node_ptr->yfixed) 
+            if (node_ptr->xfixed && node_ptr->yfixed)
             {
-                if(render_fjoint(truss_render_ptr->renderer, node_ptr)) animation_cleanup(truss_render_ptr, EXIT_FAILURE);
+                render_fjoint(truss_render_ptr->renderer, node_ptr);
             }
-            if(node_ptr->xfixed || node_ptr->yfixed) 
+            if (node_ptr->xfixed != node_ptr->yfixed)//This is performing a logical XOR
             {
-                if(render_mjoint(truss_render_ptr->renderer, node_ptr)) animation_cleanup(truss_render_ptr, EXIT_FAILURE);
+                render_mjoint(truss_render_ptr->renderer, node_ptr);
             }
         }
 
         SDL_RenderPresent(truss_render_ptr->renderer);
         SDL_Delay(32);
     }
+    animation_cleanup(truss_render_ptr, EXIT_SUCCESS);
 }

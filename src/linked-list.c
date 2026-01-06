@@ -37,6 +37,7 @@ static int cmp2(const void *aa, const void *bb, void *pp)
 Conscell *ll_push(Conscell *newList, void *data)
 {
     Conscell *newCell = xmalloc(sizeof *newCell);
+    *newCell = (Conscell){0};
     newCell->data = data;
     newCell->next = newList;
     return newCell;

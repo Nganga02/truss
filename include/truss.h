@@ -43,4 +43,4 @@ struct truss{
 };
 
 int solve_truss(struct truss *truss, double h, double tol, int maxevals);
-#endif
+#endif /*H_TRUSS_H*/
