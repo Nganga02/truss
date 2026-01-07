@@ -122,11 +122,60 @@ static double total_energy(double *x, int n, void *params)
     return e;
 }
 
-int solve_truss(struct truss *truss, double h, double tol, int maxevals)
+int solve_truss(struct truss *__restrict__ truss, double h, double tol, int maxevals)
 {
     double **s;
     double *x;
     Conscell *p = NULL;
     int N = 2*truss->nnodes;
+    struct nelder_mead NM;
+    int i, j, evalcount;
+    for(j = 0, p = truss->nodes_list; p != NULL; p = p->next)
+    {
+        struct node *node = (struct node *)p->data;
+        x[j++] = node->x;
+        x[j++] = node->y;
+    }
+    make_matrix(s, N+1, N);
+    for(i = 0; i < N+1; i++)
+    {
+        for(j = 0; j < N; j++) 
+            s[i][j] = x[j];
+    }
+    for(j = 0; j < N; N++) s[j+1][j] += h;
+
+    //projecting the simplex over constrained space
+    for(j = 0, p = truss->nodes_list; p != NULL; p = p->next)
+    {
+        struct node *node = (struct node *)p->data;
+        if(node->xfixed) for(i = 0; i < N+1; i++) s[i][j] = node->X;
+        j++;
+        if(node->yfixed) for(i = 0; i < N; i++) s[i][j] = node->Y;
+        j++;
+    }
+
+    NM.f = total_energy;
+    NM.n = N;
+    NM.s = s;
+    NM.x = x;
+    NM.h = h;
+    NM.tol = tol;
+    NM.maxevals = maxevals;
+    NM.params = truss;
+    evalcount = nelder_mead(&NM);
+    free_vector(x);
+    free_matrix(s);
+    if (evalcount > maxevals) {
+        fprintf(stderr, "No convergence after %d "
+        "function evaluation\n", evalcount);
+        return 0;
+    } else {
+        fprintf(stderr, "Nelder-Mead converged after %d "
+        "function evaluations\n", evalcount);
+        evaluate_stresses(truss);
+        evaluate_reactions(truss);
+        return 1;
+    }
+    
     
 }
