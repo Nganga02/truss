@@ -128,6 +128,7 @@ static struct link *make_link(int n, int n1, int n2, double A, double E, Conscel
     new_link->np2 = np2;
     new_link->A = A;
     new_link->E = E;
+    new_link->n = n;
     double dx = np2->x - np1->x;
     double dy = np2->y - np1->y;
     new_link->L = sqrt((SQ(dx) + SQ(dy)));

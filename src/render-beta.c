@@ -8,6 +8,7 @@ int main(void)
     struct truss *truss;
     if ((truss = read_truss(stdin)) == NULL)
         return EXIT_FAILURE;
+
     fprintf(stderr, "Rendering truss\n");
     render_truss(truss);
     fprintf(stderr, "Writing the truss file\n");

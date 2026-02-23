@@ -2,6 +2,7 @@
 #define H_TRUSS_RENDER_H
 
 #include <SDL2/SDL.h>
+#include <SDL_video.h>
 #include "truss.h"
 
 typedef struct truss_render{

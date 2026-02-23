@@ -7,7 +7,7 @@ INCDIR:=./include
 OBJDIR:=./obj
 BINDIR:=./bin
 
-interlude_sources:= truss-io.c truss-render.c linked-list.c truss.c fetch_line.c xmalloc.c render-beta.c
+interlude_sources:= truss-io.c truss-render.c linked-list.c truss.c fetch_line.c xmalloc.c render-beta.c nelder-mead.c
 
 interlude_src=$(foreach file,$(interlude_sources),$(SRCDIR)/$(file))
 interlude_obj=$(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(interlude_src))

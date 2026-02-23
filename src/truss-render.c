@@ -5,11 +5,13 @@
 #include "truss-render.h"
 #include "truss-io.h"
 #include "truss.h"
+#include "xmalloc.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
+int w, h;
 /**
  *Function to initiialize the renderer
  */
@@ -55,7 +57,6 @@ static void animation_cleanup(Truss_Renderer *truss_render_ptr, int exit_status)
     SDL_DestroyRenderer(truss_render_ptr->renderer);
     SDL_DestroyWindow(truss_render_ptr->window);
     SDL_Quit();
-    fprintf(stderr, "[EXIT STATUS]____________%i_____________\n", exit_status);
     if (exit_status == EXIT_FAILURE)
     {
         if (truss_render_ptr != NULL)
@@ -121,9 +122,19 @@ int render_mjoint(SDL_Renderer *renderer, struct node *moving_node)
  * \param nodes_1_and_2
  * \param area
  */
-static int render_link(SDL_Renderer *renderer, struct link *link)
+static int render_link(
+    SDL_Renderer *renderer, 
+    struct link *link, 
+    double x_factor, 
+    double y_factor)
 {
+
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    // Scaling and translating the links by the scaling factor
+    int trans_px = 20;
+    
+
     // We will be using the filled rectangle
     SDL_FPoint points[] = {
         {link->np1->x, link->np1->y},
@@ -146,6 +157,10 @@ static int render_link(SDL_Renderer *renderer, struct link *link)
 
 void render_truss(struct truss *truss)
 {
+
+    double x_factor = 0.0, y_factor = 0.0;
+    int max_x_node = 0, max_y_node = 0;
+
     Truss_Renderer truss_render = {
         .truss = truss,
         .window = NULL,
@@ -153,12 +168,17 @@ void render_truss(struct truss *truss)
         .texture = NULL};
 
     Truss_Renderer *truss_render_ptr = &truss_render;
+
     // Initializing the SDL object
     if (!SDL_initialize(truss_render_ptr))
     {
         printf("An error occured:*** Error initializing a window");
         animation_cleanup(truss_render_ptr, EXIT_FAILURE);
     }
+
+
+    // Getting the window size
+    SDL_GetWindowSize(truss_render_ptr->window, &w, &h);
 
     // Positioning a stress key
     SDL_Rect rects[15];
@@ -203,6 +223,18 @@ void render_truss(struct truss *truss)
             SDL_RenderFillRect(truss_render_ptr->renderer, &rects[i]);
         }
 
+        // Calculating the scale factor
+        for (
+            Conscell *p = truss_render_ptr->truss->links_list;
+            p != NULL; p = p->next)
+        {
+            struct link *lk_ptr = (struct link *)p->data;
+            max_x_node = MAX(lk_ptr->np1->x, lk_ptr->np2->x);
+            max_y_node = MAX(lk_ptr->np1->y, lk_ptr->np2->y);
+            x_factor = 0.75*w/max_x_node;
+            y_factor = 0.75*h/max_y_node; 
+        }
+
         // Rendering links
         for (
             Conscell *p = truss_render_ptr->truss->links_list;
@@ -210,7 +242,7 @@ void render_truss(struct truss *truss)
             p = p->next)
         {
             struct link *lk_ptr = (struct link *)p->data;
-            render_link(truss_render_ptr->renderer, lk_ptr);
+            render_link(truss_render_ptr->renderer, lk_ptr, x_factor, y_factor);
         }
 
         // Rendering nodes(fixed and movable)
@@ -235,3 +267,7 @@ void render_truss(struct truss *truss)
     }
     animation_cleanup(truss_render_ptr, EXIT_SUCCESS);
 }
+
+
+
+///TODO: Render the struss with bigger visuals ie mapping the truss to the window size.

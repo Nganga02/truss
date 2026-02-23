@@ -1,0 +1,39 @@
+# Cantilever.tdf
+# A cantilever truss of eight nodes and 15 links
+# Format: "node n: x y" where x and y are the node’s coordinates
+BEGIN NODES
+    node 0:  *0  *0
+    node 1:  1  0
+    node 2:  2  0
+    node 3:  3  0
+    node 4:  *0  *1
+    node 5:  1  1
+    node 6:  2  1
+    node 7:  3  1
+END NODES
+# Format: "link n: n1 n2 A E" where n1 and n2 are the node
+# numbers of the link’s ends, A is the link’s cross-sectional
+# area, and E is the link’s Young’s modulus.
+BEGIN LINKS
+    link 0:  0  1  1  1
+    link 1:  0  5  1  1
+    link 2:  4  1  1  1
+    link 3:  4  5  1  1
+    link 4:  1  5  1  1
+    link 5:  1  2  1  1
+    link 6:  1  6  1  1
+    link 7:  5  2  1  1
+    link 8:  5  6  1  1
+    link 9:  2  6  1  1
+    link 10:  2  3  1  1
+    link 11:  2  7  1  1
+    link 12:  6  3  1  1
+    link 13:  6  7  1  1
+    link 14:  3  7  1  1
+END LINKS
+# Format: "load n: fx fy" where (fx, fy) is the load applied to node n.
+# Nodes not listed here have no externally applied loads.
+BEGIN LOADS
+    load 7:  0.003  -0.010
+    load 3:  -0.008  -0.005
+END LOADS

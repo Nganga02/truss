@@ -176,6 +176,6 @@ int solve_truss(struct truss *__restrict__ truss, double h, double tol, int maxe
         evaluate_reactions(truss);
         return 1;
     }
-    
-    
 }
+
+/* \(^_^)/*/
