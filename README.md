@@ -52,3 +52,12 @@ The following are the header files required to accomplish the truss project
 The files `truss-io.[ch]` handle the reading and writing of truss description files which has the extension `.tdf`
 
 The files `truss.[ch]` contain the implementation of the equations and the solver utility needed to solve trusses 
+
+I used the file `render-beta.c` to solve and render the truss function.
+
+Using the following file you can follow to get the steps I followed to render the truss file[render](./render.md).
+
+
+### The following came up while doing the project
+1. I had to come up with a projection matrix to scale and translate the truss to fit the animation window.<br>
+2. I realised I dragged on a bug that was allocating pointer size memory instead of data type's memory.
