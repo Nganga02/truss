@@ -124,14 +124,21 @@ static double total_energy(double *x, int n, void *params)
 
 int solve_truss(struct truss *__restrict__ truss, double h, double tol, int maxevals)
 {
+    printf("solving truss------------\n");
     double **s;
     double *x;
-    Conscell *p = NULL;
+    Conscell *p;
     int N = 2*truss->nnodes;
+    printf("----------number of entries: %d------------\n", N);
     struct nelder_mead NM;
     int i, j, evalcount;
+    printf("This is before make_vector function-------------\n");
+    make_vector(x, N);
+    printf("Outside the flattening loop");
+
     for(j = 0, p = truss->nodes_list; p != NULL; p = p->next)
     {
+        printf("Inside the flattening loop");
         struct node *node = (struct node *)p->data;
         x[j++] = node->x;
         x[j++] = node->y;
@@ -142,7 +149,7 @@ int solve_truss(struct truss *__restrict__ truss, double h, double tol, int maxe
         for(j = 0; j < N; j++) 
             s[i][j] = x[j];
     }
-    for(j = 0; j < N; N++) s[j+1][j] += h;
+    for(j = 0; j < N; j++) s[j+1][j] += h;
 
     //projecting the simplex over constrained space
     for(j = 0, p = truss->nodes_list; p != NULL; p = p->next)

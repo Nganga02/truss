@@ -9,7 +9,7 @@ void *malloc_or_exit(size_t nbytes, const char *file, int line);
 #define xmalloc(nbytes) malloc_or_exit((nbytes), __FILE__, __LINE__)
 
 
-#define make_vector(v, n) ((v) = xmalloc((n)* sizeof (v)))
+#define make_vector(v, n) ((v) = xmalloc((n)* sizeof *(v)))
 
 
 #define make_matrix(a, m, n) do {                               \

@@ -14,5 +14,6 @@ int main(void)
     fprintf(stderr, "Writing the truss file\n");
     write_truss(truss);
     free_truss(truss);
+    
     return EXIT_SUCCESS;
 }

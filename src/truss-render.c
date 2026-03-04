@@ -11,7 +11,11 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
-int w, h;
+static int w, h;
+static float y_offset;
+static double x_factor = 0.0, y_factor = 0.0;
+static const int x_translation = 20;
+
 /**
  *Function to initiialize the renderer
  */
@@ -59,12 +63,13 @@ static void animation_cleanup(Truss_Renderer *truss_render_ptr, int exit_status)
     SDL_Quit();
     if (exit_status == EXIT_FAILURE)
     {
+        printf("---The exit status is FAILURE---");
         if (truss_render_ptr != NULL)
             free_truss(truss_render_ptr->truss);
         exit(exit_status);
     }
 }
-
+ 
 /**
  * Rendering fixed points
  * Accepts the following arguments:
@@ -75,12 +80,15 @@ static void animation_cleanup(Truss_Renderer *truss_render_ptr, int exit_status)
 static int render_fjoint(SDL_Renderer *renderer, struct node *fixed_node)
 {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 127);
+    
+    double x_transform = fixed_node->x * x_factor + x_translation;
+    double y_transform = fixed_node->y * y_factor + y_offset;
 
     const SDL_FPoint line_points[] = {
-        {fixed_node->x, fixed_node->y},
-        {fixed_node->x - 12, fixed_node->y + 24},
-        {fixed_node->x + 12, fixed_node->y + 24},
-        {fixed_node->x, fixed_node->y},
+        {x_transform, y_transform},
+        {x_transform - 12, y_transform + 24},
+        {x_transform + 12, y_transform + 24},
+        {x_transform, y_transform},
     };
 
     return SDL_RenderDrawLinesF(renderer, line_points, SDL_arraysize(line_points));
@@ -99,11 +107,15 @@ int render_mjoint(SDL_Renderer *renderer, struct node *moving_node)
 {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 127);
 
+    double x_transform = moving_node->x * x_factor + x_translation;
+    double y_transform = moving_node->y * y_factor + y_offset;
+
+
     SDL_FPoint line_points[] = {
-        {moving_node->x, moving_node->y},
-        {moving_node->x - 12, moving_node->y + 24},
-        {moving_node->x + 12, moving_node->y + 24},
-        {moving_node->x, moving_node->y},
+        {x_transform, y_transform},
+        {x_transform - 12, y_transform + 24},
+        {x_transform + 12, y_transform + 24},
+        {x_transform, y_transform},
     };
 
     return SDL_RenderDrawLinesF(renderer, line_points, SDL_arraysize(line_points));
@@ -124,21 +136,27 @@ int render_mjoint(SDL_Renderer *renderer, struct node *moving_node)
  */
 static int render_link(
     SDL_Renderer *renderer, 
-    struct link *link, 
-    double x_factor, 
-    double y_factor)
+    struct link *link)
 {
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
+
     // Scaling and translating the links by the scaling factor
-    int trans_px = 20;
-    
+    struct node *n1 = link->np1;
+    struct node *n2 = link->np2;
+
 
     // We will be using the filled rectangle
     SDL_FPoint points[] = {
-        {link->np1->x, link->np1->y},
-        {link->np2->x, link->np2->y}};
+        {
+            n1->x*x_factor + x_translation,
+            n1->y*y_factor + y_offset
+        },
+        {
+            n2->x*x_factor + x_translation,
+            n2->y*y_factor + y_offset
+        }};
 
     return SDL_RenderDrawLinesF(renderer, points, SDL_arraysize(points));
     /**
@@ -158,7 +176,6 @@ static int render_link(
 void render_truss(struct truss *truss)
 {
 
-    double x_factor = 0.0, y_factor = 0.0;
     int max_x_node = 0, max_y_node = 0;
 
     Truss_Renderer truss_render = {
@@ -179,6 +196,8 @@ void render_truss(struct truss *truss)
 
     // Getting the window size
     SDL_GetWindowSize(truss_render_ptr->window, &w, &h);
+    y_offset = 0.375*h;
+    
 
     // Positioning a stress key
     SDL_Rect rects[15];
@@ -232,7 +251,7 @@ void render_truss(struct truss *truss)
             max_x_node = MAX(lk_ptr->np1->x, lk_ptr->np2->x);
             max_y_node = MAX(lk_ptr->np1->y, lk_ptr->np2->y);
             x_factor = 0.75*w/max_x_node;
-            y_factor = 0.75*h/max_y_node; 
+            y_factor = 0.25*h/max_y_node; 
         }
 
         // Rendering links
@@ -242,7 +261,7 @@ void render_truss(struct truss *truss)
             p = p->next)
         {
             struct link *lk_ptr = (struct link *)p->data;
-            render_link(truss_render_ptr->renderer, lk_ptr, x_factor, y_factor);
+            render_link(truss_render_ptr->renderer, lk_ptr);
         }
 
         // Rendering nodes(fixed and movable)
@@ -263,6 +282,7 @@ void render_truss(struct truss *truss)
         }
 
         SDL_RenderPresent(truss_render_ptr->renderer);
+        solve_truss(truss, 0.1, 0.001, 5000);
         SDL_Delay(32);
     }
     animation_cleanup(truss_render_ptr, EXIT_SUCCESS);
@@ -270,4 +290,3 @@ void render_truss(struct truss *truss)
 
 
 
-///TODO: Render the struss with bigger visuals ie mapping the truss to the window size.
