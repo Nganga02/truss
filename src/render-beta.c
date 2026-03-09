@@ -9,6 +9,9 @@ int main(void)
     if ((truss = read_truss(stdin)) == NULL)
         return EXIT_FAILURE;
 
+    
+    // solve_truss(truss, 0.1, 0.001, 5000);
+
     fprintf(stderr, "Rendering truss\n");
     render_truss(truss);
     fprintf(stderr, "Writing the truss file\n");

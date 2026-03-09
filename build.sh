@@ -1,3 +1,3 @@
 #!/bin/bash
 
-make && ./bin/render
+make && ./bin/render <cantilever.tdf
